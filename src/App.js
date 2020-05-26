@@ -62,7 +62,8 @@ class App extends Component{
   }
 
   loadUser = (data) =>{
-    this.setState({user:{
+    this.setState({
+      user:{
             id:   data.id,
             name: data.name,
             email :data.email,
@@ -79,7 +80,7 @@ class App extends Component{
 
 
   onInputChange =(event) =>{
-    console.log(event.target.value);
+    //nsole.log(event.target.value);
     this.setState({input : event.target.value})
   }
 
@@ -93,17 +94,17 @@ class App extends Component{
     const height = Number(image.height);
     console.log(height +"and "+width);
     return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - (clarifaiFace.right_col * width),
-      bottomRow: height - (clarifaiFace.bottom_row * height)
+            leftCol: clarifaiFace.left_col * width,
+            topRow: clarifaiFace.top_row * height,
+            rightCol: width - (clarifaiFace.right_col * width),
+            bottomRow: height - (clarifaiFace.bottom_row * height)
     } 
 
   }
 
 
   displayFaceBox = (box)=>{
-    console.log(box)
+    //console.log(box)
     this.setState({box : box });
   }
 
