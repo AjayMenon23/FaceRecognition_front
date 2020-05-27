@@ -8,6 +8,7 @@ import Logo from './Components/Logo/Logo';
 import ImageLinkForm from './Components/ImageLink/ImageLinkForm';
 import Particles from 'react-particles-js';
 import FRecognition from './Components/Face/FRecognition';
+import FaceCount from './Components/FaceCount/FaceCount';
 import SignIn from './Components/SignIn/SignIn';
 import Register from './Components/Register/Register';
 
@@ -16,9 +17,10 @@ import Register from './Components/Register/Register';
 const initialState={
      input : '',
       imageUrl : '',
-      box:{}, 
+      box:[], 
       route: 'signin',
       isSignedIn: false,
+      showImage:false,
       user:{
             id:'',
             name: '',
@@ -49,7 +51,7 @@ class App extends Component{
     this.state = {
       input : '',
       imageUrl : '',
-      box:{}, 
+      box:[], 
       route: 'signin',
       isSignedIn: false,
       user:{
@@ -62,8 +64,7 @@ class App extends Component{
   }
 
   loadUser = (data) =>{
-    this.setState({
-      user:{
+    this.setState({user:{
             id:   data.id,
             name: data.name,
             email :data.email,
@@ -80,40 +81,49 @@ class App extends Component{
 
 
   onInputChange =(event) =>{
-    //nsole.log(event.target.value);
+    console.log(event.target.value);
     this.setState({input : event.target.value})
   }
 
 
-  calculateFaceLocation =(data)=>{
-    const testing= data.outputs;
-    console.log(testing);
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+  calculateFaceLocation =(data,i)=>{
+
+    const clarifaiFace = data.outputs[0].data.regions[i].region_info.bounding_box;
     console.log(clarifaiFace) ;
     const image = document.getElementById('inputImage');
     const width = Number(image.width);
     const height = Number(image.height);
     console.log(height +"and "+width);
+    let lCol= clarifaiFace.left_col * width;
+    console.log("LEft"+lCol);
     return {
-            leftCol: clarifaiFace.left_col * width,
-            topRow: clarifaiFace.top_row * height,
-            rightCol: width - (clarifaiFace.right_col * width),
-            bottomRow: height - (clarifaiFace.bottom_row * height)
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
     } 
 
   }
 
 
-  displayFaceBox = (box)=>{
-    //console.log(box)
-    this.setState({box : box });
+   displayFaceBox = (box) => {
+    console.log("BOX",box)
+    this.setState({
+      box: [...this.state.box, box]
+    });
+    console.log(this.state.box)
+
   }
 
   //"a403429f2ddf4b49b307e318f00e528b", "https://samples.clarifai.com/face-det.jpg"
 
   onSubmit = ()=> {
-    this.setState({imageUrl: this.state.input});
-      fetch('https://fathomless-bayou-90603.herokuapp.com/imageurl', {
+    this.setState({
+      box : [],
+      showImage:true,
+      imageUrl: this.state.input
+      });
+      fetch('http://localhost:3000/imageurl', {
         method: 'post',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -121,25 +131,15 @@ class App extends Component{
         })
       })
       .then(response => response.json())
-      .then(response => {
-        if (response) {
-          fetch('https://fathomless-bayou-90603.herokuapp.com/image', {
-            method: 'put',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-              id: this.state.user.id
-            })
-          })
-            // .then(response => response.json())
-            // .then(count => {
-            //   this.setState(Object.assign(this.state.user, { entries: count}))
-            // })
-            // .catch(console.log)
-
-        }
-        this.displayFaceBox(this.calculateFaceLocation(response))
-      })
-      .catch(err => console.log(err));
+      .then(response =>{
+        console.log(" Res"+response.outputs)
+        for(let i = 0; i < response.outputs[0].data.regions.length; i++){
+          this.displayFaceBox(this.calculateFaceLocation(response, i))
+        }}).catch(err => console.log(err));
+        
+        //this.displayFaceBox(this.calculateFaceLocation(response))
+     
+      
   }
 
  // console.log('{this.imageUrl.state}');
@@ -186,9 +186,11 @@ class App extends Component{
                         onInputChange={this.onInputChange} 
                         onSubmit={ this.onSubmit}
                        /> 
-                            
-                     <FRecognition box={this.state.box} imageUrl={this.state.imageUrl}/>
+                      <FaceCount box={this.state.box}/>    
+                     <FRecognition imageUrl={this.state.imageUrl} box={this.state.box} showImage={this.state.showImage}/>
+                     
                 </div>
+
 
                 :
                 (   this.state.route === 'signin'?
