@@ -1,3 +1,6 @@
+This web application helps the user to get the count of number of human faces in any picture.
+It is developed using React library and uses Clarifai API.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
